@@ -7,12 +7,12 @@ graph TD
     classDef cluster fill:#b45309,stroke:#78350f,stroke-width:2px,color:#fff;
 
     %% Workflow Stages
-    Developer["💻 SRE/Dev Ops"] ::: dev
-    GitHub["🐙 GitHub Source Repository"] ::: git
-    GHA["⚡ GitHub Actions (CI)"] ::: ci
-    DockerRegistry["🐳 Container Registry"] ::: git
-    ArgoCD["⛵ ArgoCD Controller (CD)"] ::: cd
-    K8s["☸️ Kubernetes Cluster (Minikube)"] ::: cluster
+    Developer["💻 SRE/Dev Ops"]
+    GitHub["🐙 GitHub Source Repository"]
+    GHA["⚡ GitHub Actions (CI)"]
+    DockerRegistry["🐳 Container Registry"]
+    ArgoCD["⛵ ArgoCD Controller (CD)"]
+    K8s["☸️ Kubernetes Cluster (Minikube)"]
 
     %% Connections
     Developer -->|1. git push| GitHub
@@ -22,6 +22,12 @@ graph TD
     GHA -->|5. auto-update Helm tags| GitHub
     ArgoCD -->|6. polls git state| GitHub
     ArgoCD -->|7. auto syncs / heals| K8s
+
+    class Developer dev;
+    class GitHub,DockerRegistry git;
+    class GHA ci;
+    class ArgoCD cd;
+    class K8s cluster;
 
     subgraph k8s_ns [Kubernetes Namespaces]
         dev_ns[Namespace: dev]

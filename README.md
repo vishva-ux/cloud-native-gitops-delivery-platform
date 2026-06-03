@@ -10,18 +10,12 @@ The platform includes a **FastAPI backend** that connects directly to the Kubern
 
 ```mermaid
 graph TD
-    classDef dev fill:#4338ca,stroke:#312e81,stroke-width:2px,color:#fff;
-    classDef git fill:#1e1b4b,stroke:#0f172a,stroke-width:2px,color:#fff;
-    classDef ci fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff;
-    classDef cd fill:#059669,stroke:#047857,stroke-width:2px,color:#fff;
-    classDef cluster fill:#b45309,stroke:#78350f,stroke-width:2px,color:#fff;
-
-    Developer["💻 SRE/DevOps Engineer"] ::: dev
-    GitHub["🐙 GitHub Source Repository"] ::: git
-    GHA["⚡ GitHub Actions (CI)"] ::: ci
-    DockerRegistry["🐳 Docker Registry"] ::: git
-    ArgoCD["⛵ ArgoCD Controller (CD)"] ::: cd
-    K8s["☸️ Kubernetes Cluster (Minikube)"] ::: cluster
+    Developer["💻 SRE/DevOps Engineer"]
+    GitHub["🐙 GitHub Source Repository"]
+    GHA["⚡ GitHub Actions (CI)"]
+    DockerRegistry["🐳 Docker Registry"]
+    ArgoCD["⛵ ArgoCD Controller (CD)"]
+    K8s["☸️ Kubernetes Cluster (Minikube)"]
 
     Developer -->|1. git push changes| GitHub
     GitHub -->|2. triggers workflow| GHA
@@ -30,6 +24,18 @@ graph TD
     GHA -->|5. auto-update Helm tags| GitHub
     ArgoCD -->|6. detects OutOfSync state| GitHub
     ArgoCD -->|7. auto syncs / self-heals| K8s
+
+    classDef dev fill:#4338ca,stroke:#312e81,stroke-width:2px,color:#fff;
+    classDef git fill:#1e1b4b,stroke:#0f172a,stroke-width:2px,color:#fff;
+    classDef ci fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff;
+    classDef cd fill:#059669,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef cluster fill:#b45309,stroke:#78350f,stroke-width:2px,color:#fff;
+
+    class Developer dev;
+    class GitHub,DockerRegistry git;
+    class GHA ci;
+    class ArgoCD cd;
+    class K8s cluster;
 ```
 
 1. **GitHub is the single source of truth**: All Kubernetes configurations (manifests/Helm values) are tracked in this Git repository.
