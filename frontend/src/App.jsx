@@ -515,7 +515,7 @@ function App() {
                 </span>
               </div>
               <p style={{ color: 'hsl(var(--text-secondary))', fontSize: '0.9rem' }}>
-                ArgoCD reconciler continuously polling GitHub Repository: <code style={{ color: 'hsl(var(--secondary))' }}>{settings.GIT_REPO_URL}</code>
+                ArgoCD reconciler continuously polling GitHub Repository: <code style={{ color: 'hsl(var(--secondary))' }}>https://github.com/vishva-ux/cloud-native-gitops-delivery-platform</code>
               </p>
               <div style={{ display: 'flex', gap: '2rem', fontSize: '0.8rem', color: 'hsl(var(--text-muted))', marginTop: '0.5rem' }}>
                 <span>Desired Commit: <strong style={{ color: '#fff' }}>{gitopsStatus.git_commit || 'e8a9f02c'}</strong></span>
