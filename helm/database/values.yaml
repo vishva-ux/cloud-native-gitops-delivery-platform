@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: "15-alpine"
+
+service:
+  type: ClusterIP
+  port: 5432
+
+postgresql:
+  username: "postgres"
+  database: "gitops_db"
+  password: "postgrespassword" # default fallback
+  storage: "1Gi"
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi

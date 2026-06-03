@@ -1,0 +1,49 @@
+{{- if .Values.progressiveDelivery.enabled -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+{{- else -}}
+apiVersion: apps/v1
+kind: Deployment
+{{- end }}
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  {{- if not .Values.progressiveDelivery.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-frontend
+  {{- if .Values.progressiveDelivery.enabled }}
+  strategy:
+    {{- if eq .Values.progressiveDelivery.strategy "Canary" }}
+    canary:
+      steps:
+        {{- toYaml .Values.progressiveDelivery.canary.steps | nindent 8 }}
+    {{- else if eq .Values.progressiveDelivery.strategy "BlueGreen" }}
+    blueGreen:
+      activeService: {{ .Values.progressiveDelivery.blueGreen.activeService }}
+      previewService: {{ .Values.progressiveDelivery.blueGreen.previewService }}
+      autoPromotionEnabled: {{ .Values.progressiveDelivery.blueGreen.autoPromotionEnabled }}
+    {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: VITE_API_URL
+              value: "http://{{ .Release.Name }}-backend-service:8000"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

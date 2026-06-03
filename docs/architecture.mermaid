@@ -1,0 +1,34 @@
+graph TD
+    %% Define System Node styling
+    classDef dev fill:#4338ca,stroke:#312e81,stroke-width:2px,color:#fff;
+    classDef git fill:#1e1b4b,stroke:#0f172a,stroke-width:2px,color:#fff;
+    classDef ci fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff;
+    classDef cd fill:#059669,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef cluster fill:#b45309,stroke:#78350f,stroke-width:2px,color:#fff;
+
+    %% Workflow Stages
+    Developer["💻 SRE/Dev Ops"] ::: dev
+    GitHub["🐙 GitHub Source Repository"] ::: git
+    GHA["⚡ GitHub Actions (CI)"] ::: ci
+    DockerRegistry["🐳 Container Registry"] ::: git
+    ArgoCD["⛵ ArgoCD Controller (CD)"] ::: cd
+    K8s["☸️ Kubernetes Cluster (Minikube)"] ::: cluster
+
+    %% Connections
+    Developer -->|1. git push| GitHub
+    GitHub -->|2. triggers job| GHA
+    GHA -->|3. run tests & lint| GHA
+    GHA -->|4. docker build| DockerRegistry
+    GHA -->|5. auto-update Helm tags| GitHub
+    ArgoCD -->|6. polls git state| GitHub
+    ArgoCD -->|7. auto syncs / heals| K8s
+
+    subgraph k8s_ns [Kubernetes Namespaces]
+        dev_ns[Namespace: dev]
+        staging_ns[Namespace: staging]
+        prod_ns[Namespace: prod]
+    end
+
+    K8s --> dev_ns
+    K8s --> staging_ns
+    K8s --> prod_ns

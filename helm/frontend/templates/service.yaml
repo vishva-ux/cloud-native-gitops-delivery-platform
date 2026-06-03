@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-frontend-service
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Release.Name }}-frontend
+---
+{{- if and .Values.progressiveDelivery.enabled (eq .Values.progressiveDelivery.strategy "BlueGreen") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.progressiveDelivery.blueGreen.previewService }}
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Release.Name }}-frontend
+{{- end }}

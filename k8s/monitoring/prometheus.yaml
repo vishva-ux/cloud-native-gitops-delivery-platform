@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - "alertmanager-service:9093"
+
+    rule_files:
+      - "/etc/prometheus/alert.rules"
+
+    scrape_configs:
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: apiserver
+
+      - job_name: 'gitops-backend'
+        static_configs:
+          - targets: ['backend-dev-service.dev.svc.cluster.local:8000', 'backend-staging-service.staging.svc.cluster.local:8000', 'backend-prod-service.prod.svc.cluster.local:8000']
+
+  alert.rules: |
+    groups:
+      - name: gitops-alerts
+        rules:
+          - alert: HostHighCpuUsage
+            expr: sum(rate(node_cpu_seconds_total{mode!="idle"}[5m])) by (instance) > 0.85
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU utilization on instance {{ $labels.instance }}"
+          
+          - alert: KubePodCrashLooping
+            expr: rate(kube_pod_container_status_restarts_total[5m]) * 60 > 2
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod {{ $labels.pod }} is crash looping"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-deployment
+  namespace: monitoring
+  labels:
+    app: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.45.0
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/prometheus
+            - name: storage-volume
+              mountPath: /prometheus
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+        - name: storage-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: monitoring
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+  type: ClusterIP

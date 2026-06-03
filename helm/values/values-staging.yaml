@@ -1,0 +1,36 @@
+frontend:
+  replicaCount: 2
+  image:
+    tag: "staging-latest"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  # Enable Blue-Green Progressive Delivery in Staging
+  progressiveDelivery:
+    enabled: true
+    strategy: BlueGreen
+    blueGreen:
+      activeService: "frontend-staging-active"
+      previewService: "frontend-staging-preview"
+      autoPromotionEnabled: true
+
+backend:
+  replicaCount: 2
+  image:
+    tag: "staging-latest"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+database:
+  replicaCount: 1
+  postgresql:
+    storage: "2Gi"

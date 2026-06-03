@@ -1,0 +1,41 @@
+replicaCount: 1
+
+image:
+  repository: vishvaux/gitops-frontend
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: "nginx"
+  hosts:
+    - host: gitops-platform.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+progressiveDelivery:
+  enabled: false
+  strategy: Canary  # Canary or BlueGreen
+  canary:
+    steps:
+      - setWeight: 10
+      - pause: { duration: 10s }
+      - setWeight: 50
+      - pause: { duration: 10s }
+  blueGreen:
+    activeService: "frontend-active-service"
+    previewService: "frontend-preview-service"
+    autoPromotionEnabled: true

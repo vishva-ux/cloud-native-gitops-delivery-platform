@@ -1,0 +1,6 @@
+frontend:
+  replicaCount: 1
+backend:
+  replicaCount: 1
+database:
+  replicaCount: 1

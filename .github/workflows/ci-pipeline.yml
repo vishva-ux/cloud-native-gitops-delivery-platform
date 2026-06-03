@@ -1,0 +1,97 @@
+name: CI/CD GitOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      # Backend Checks
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
+
+      - name: Lint Backend Code
+        run: |
+          cd backend
+          ruff check .
+
+      - name: Run Backend Unit Tests
+        run: |
+          cd backend
+          pytest
+
+      # Frontend Checks
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install Frontend Dependencies & Build
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+  docker-build:
+    name: Docker Build & Push Simulation
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v2
+
+      - name: Build Backend Image (Simulated)
+        run: |
+          cd backend
+          docker build -t vishvaux/gitops-backend:${{ github.sha }} .
+
+      - name: Build Frontend Image (Simulated)
+        run: |
+          cd frontend
+          docker build -t vishvaux/gitops-frontend:${{ github.sha }} .
+
+  gitops-promote:
+    name: Automated GitOps Promotion
+    needs: docker-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Dev Helm Values Tags
+        run: |
+          # Use sed to update the tag in dev overrides to trigger ArgoCD sync
+          sed -i 's/tag: ".*"/tag: "${{ github.sha }}"/g' helm/values/values-dev.yaml
+          
+      - name: Commit and Push Image Tag Changes
+        run: |
+          git config --global user.name "gitops-bot"
+          git config --global user.email "gitops-bot@vishva.me"
+          git add helm/values/values-dev.yaml
+          git commit -m "image(gitops): auto-promote dev tag to ${{ github.sha }} [skip ci]"
+          git push origin main

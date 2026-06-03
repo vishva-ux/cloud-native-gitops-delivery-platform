@@ -1,0 +1,52 @@
+frontend:
+  replicaCount: 3
+  image:
+    tag: "prod-stable"
+  resources:
+    limits:
+      cpu: 150m
+      memory: 256Mi
+    requests:
+      cpu: 80m
+      memory: 128Mi
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: gitops.production.local
+        paths:
+          - path: /
+            pathType: Prefix
+  # Enable Canary Progressive Delivery in Production
+  progressiveDelivery:
+    enabled: true
+    strategy: Canary
+    canary:
+      steps:
+        - setWeight: 10
+        - pause: { duration: 30s }
+        - setWeight: 50
+        - pause: { duration: 60s }
+        - setWeight: 100
+
+backend:
+  replicaCount: 3
+  image:
+    tag: "prod-stable"
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 150m
+      memory: 256Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+
+database:
+  replicaCount: 2
+  postgresql:
+    storage: "5Gi"

@@ -1,0 +1,30 @@
+graph TD
+    classDef stable fill:#4338ca,stroke:#312e81,stroke-width:2px,color:#fff;
+    classDef canary fill:#0891b2,stroke:#0d9488,stroke-width:2px,color:#fff;
+    classDef router fill:#d97706,stroke:#b45309,stroke-width:2px,color:#fff;
+
+    subgraph CanaryStrategy [Canary Deployment Weight Split]
+        IngressRouter[Ingress / VirtualService Router] ::: router
+        StableSvc[Stable Service - Weight 90%] ::: stable
+        CanarySvc[Canary Service - Weight 10%] ::: canary
+        StablePods[Stable Pods v1.0.0]
+        CanaryPods[Canary Pods v1.1.0]
+
+        IngressRouter --> StableSvc
+        IngressRouter --> CanarySvc
+        StableSvc --> StablePods
+        CanarySvc --> CanaryPods
+    end
+
+    subgraph BlueGreenStrategy [Blue-Green Instant Shift Router]
+        ActiveService[Active Router - Active Port] ::: stable
+        PreviewService[Preview Router - Preview Port] ::: canary
+        BluePods[Blue Pods v1.1.0-rc1]
+        GreenPods[Green Pods v1.1.0-rc2]
+
+        ActiveService --> BluePods
+        PreviewService --> GreenPods
+        
+        click ActiveService "http://localhost" "Routes stable live traffic"
+        click PreviewService "http://localhost" "Routes isolated testing traffic"
+    end

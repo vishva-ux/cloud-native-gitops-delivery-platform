@@ -1,0 +1,30 @@
+replicaCount: 1
+
+image:
+  repository: vishvaux/gitops-backend
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+database:
+  host: "postgres-service"
+  port: "5432"
+  user: "postgres"
+  name: "gitops_db"
