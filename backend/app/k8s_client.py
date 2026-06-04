@@ -357,7 +357,6 @@ class K8sClient:
                 app = apps["items"][0]
                 status = app.get("status", {})
                 sync_status = status.get("sync", {}).get("status", "Unknown")
-                health_status = status.get("health", {}).get("status", "Unknown")
                 git_commit = status.get("sync", {}).get("revision", "Unknown")[:8]
                 return {
                     "sync_status": sync_status,
